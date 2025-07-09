@@ -26,11 +26,18 @@ declare global {
     openExternal: (url: string) => Promise<void>
     choosePluginsDir: () => Promise<string>
     getPluginsDir: () => Promise<string>
+    getPlugins: () => Promise<PluginT[]>
     getHotkeys: () => Promise<{ [key: string]: string }>
     setHotkey: (type: string, hotkey: string) => Promise<void>
     showMainWindow: () => Promise<void>
     hideMainWindow: () => Promise<void>
     reloadApp: () => Promise<void>
+  }
+
+  type PluginT = {
+    name: string
+    version: string
+    author: string
   }
 
   type ApplicationT = {

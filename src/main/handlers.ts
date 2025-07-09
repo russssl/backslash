@@ -295,6 +295,35 @@ export const getPluginsDir = (): Promise<string> => {
   })
 }
 
+export const getPlugins = async (): Promise<PluginT[]> => {
+  const pluginsDir = await getPluginsDir()
+  const plugins = fs
+    .readdirSync(pluginsDir)
+    .filter((plugin) => plugin !== '.git')
+    .filter((plugin) => {
+      const pluginPath = path.join(pluginsDir, plugin)
+      return fs.statSync(pluginPath).isDirectory()
+    })
+
+  return plugins
+    .map((plugin) => {
+      try {
+        const manifestPath = path.join(pluginsDir, plugin, 'manifest.yml')
+        const manifest = yaml.load(fs.readFileSync(manifestPath, 'utf8')) as ManifestT
+        return {
+          name: plugin,
+          label: manifest.label,
+          version: manifest.version,
+          author: manifest.author
+        }
+      } catch (error) {
+        console.warn(`Failed to load plugin ${plugin}:`, error)
+        return null
+      }
+    })
+    .filter((plugin): plugin is PluginT => plugin !== null)
+}
+
 /**
  * Sets the directory where plugins are stored.
  * @param newPath the path to the plugins directory to set.

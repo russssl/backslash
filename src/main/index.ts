@@ -10,6 +10,7 @@ import {
   getHotkeys,
   getPluginActions,
   getPluginsDir,
+  getPlugins,
   listInstalledApplications,
   openApplication,
   openExternal,
@@ -154,6 +155,10 @@ if (!gotTheLock) {
 
     ipcMain.handle('get-plugins-dir', async () => {
       return getPluginsDir()
+    })
+
+    ipcMain.handle('get-plugins', async () => {
+      return getPlugins()
     })
 
     ipcMain.handle('set-hotkey', async (_, type, hotkey) => {

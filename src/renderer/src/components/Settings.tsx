@@ -34,7 +34,7 @@ export const Settings = () => {
   const [open, setOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('hotkeys')
   const [pluginsDir, setPluginsDir] = useState<string | null>(null)
-
+  const [plugins, setPlugins] = useState<PluginT[]>([])
   useEffect(() => {
     const fetchPluginsDir = async () => {
       try {
@@ -46,6 +46,12 @@ export const Settings = () => {
     }
 
     fetchPluginsDir()
+
+    const fetchPlugins = async () => {
+      const plugins = await winElectron.getPlugins()
+      setPlugins(plugins)
+    }
+    fetchPlugins()
 
     winElectron.ipcRenderer.send('enable-global-shortcuts')
   }, [open])
@@ -123,6 +129,32 @@ export const Settings = () => {
                       spellCheck={false}
                       value={hasAlreadyPluginsDir ? pluginsDir : ''}
                     />
+                  </div>
+                  <div className="flex flex-col gap-2 mt-3">
+                    <Label>Installed plugins ({plugins.length})</Label>
+                    {plugins.length === 0 ? (
+                      <div className="text-sm text-muted-foreground">
+                        No plugins found. Select a plugins directory above.
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {plugins.map((plugin) => (
+                          <div
+                            key={plugin.label}
+                            className="flex items-center justify-between rounded-md border p-2 hover:bg-accent/50 transition-colors"
+                          >
+                            <div className="flex flex-col gap-0.5">
+                              <div className="font-medium text-foreground text-sm">
+                                {plugin.label}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                v{plugin.version} • by {plugin.author}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

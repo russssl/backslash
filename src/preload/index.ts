@@ -34,6 +34,9 @@ if (process.contextIsolated) {
       getPluginsDir: () => {
         return ipcRenderer.invoke('get-plugins-dir')
       },
+      getPlugins: () => {
+        return ipcRenderer.invoke('get-plugins')
+      },
       getHotkeys: () => {
         return ipcRenderer.invoke('get-hotkeys')
       },
