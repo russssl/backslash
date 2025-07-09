@@ -35,6 +35,8 @@ export const Settings = () => {
   const [activeTab, setActiveTab] = useState('hotkeys')
   const [pluginsDir, setPluginsDir] = useState<string | null>(null)
   const [plugins, setPlugins] = useState<PluginT[]>([])
+  const [disabledPlugins, setDisabledPluginsState] = useState<string[]>([])
+
   useEffect(() => {
     const fetchPluginsDir = async () => {
       try {
@@ -53,6 +55,12 @@ export const Settings = () => {
     }
     fetchPlugins()
 
+    const fetchDisabledPlugins = async () => {
+      const disabledPlugins = await winElectron.getDisabledPlugins()
+      setDisabledPluginsState(disabledPlugins)
+    }
+    fetchDisabledPlugins()
+
     winElectron.ipcRenderer.send('enable-global-shortcuts')
   }, [open])
 
@@ -67,6 +75,19 @@ export const Settings = () => {
     if (!state) await winElectron.reloadApp()
   }
 
+  const handleDisablePluginChange = async (plugin: PluginT, isDisabled: boolean) => {
+    try {
+      await winElectron.setDisabledPlugins(plugin.name, isDisabled)
+      setDisabledPluginsState((prev) => {
+        const newDisabled = isDisabled
+          ? [...prev, plugin.name]
+          : prev.filter((n) => n !== plugin.name)
+        return newDisabled
+      })
+    } catch (error) {
+      console.error('Failed to update plugin state:', error)
+    }
+  }
   const hasAlreadyPluginsDir = typeof pluginsDir === 'string'
 
   return (
@@ -138,21 +159,34 @@ export const Settings = () => {
                       </div>
                     ) : (
                       <div className="space-y-1.5">
-                        {plugins.map((plugin) => (
-                          <div
-                            key={plugin.label}
-                            className="flex items-center justify-between rounded-md border p-2 hover:bg-accent/50 transition-colors"
-                          >
-                            <div className="flex flex-col gap-0.5">
-                              <div className="font-medium text-foreground text-sm">
-                                {plugin.label}
+                        {plugins.map((plugin) => {
+                          const isDisabled = disabledPlugins.includes(plugin.name)
+                          return (
+                            <div
+                              key={plugin.name}
+                              className="flex items-center justify-between rounded-md border p-2 hover:bg-accent/50 transition-colors"
+                            >
+                              <div className="flex flex-col gap-0.5">
+                                <div className="font-medium text-foreground text-sm">
+                                  {plugin.label}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  v{plugin.version} • by {plugin.author}
+                                </div>
                               </div>
-                              <div className="text-xs text-muted-foreground">
-                                v{plugin.version} • by {plugin.author}
-                              </div>
+                              <button
+                                className={`ml-4 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 shadow-sm border ${
+                                  isDisabled
+                                    ? 'bg-emerald-900/10 text-emerald-600 border-emerald-800/20 hover:bg-emerald-900/20 hover:border-emerald-800/30 hover:shadow-md'
+                                    : 'bg-red-900/10 text-red-600 border-red-800/20 hover:bg-red-900/20 hover:border-red-800/30 hover:shadow-md'
+                                }`}
+                                onClick={() => handleDisablePluginChange(plugin, !isDisabled)}
+                              >
+                                {isDisabled ? 'Enable' : 'Disable'}
+                              </button>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     )}
                   </div>

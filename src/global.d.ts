@@ -27,6 +27,8 @@ declare global {
     choosePluginsDir: () => Promise<string>
     getPluginsDir: () => Promise<string>
     getPlugins: () => Promise<PluginT[]>
+    setDisabledPlugins: (pluginName: string, isDisabled: boolean) => Promise<void>
+    getDisabledPlugins: () => Promise<string[]>
     getHotkeys: () => Promise<{ [key: string]: string }>
     setHotkey: (type: string, hotkey: string) => Promise<void>
     showMainWindow: () => Promise<void>
@@ -36,6 +38,7 @@ declare global {
 
   type PluginT = {
     name: string
+    label: string
     version: string
     author: string
   }

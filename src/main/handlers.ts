@@ -48,6 +48,7 @@ const DEPS = {
  */
 export const getCommands = async () => {
   const currentPluginsDir = await getPluginsDir()
+  const disabledPlugins = await getDisabledPlugins()
   const plugins = fs
     .readdirSync(currentPluginsDir)
     .filter((plugin) => plugin !== '.git')
@@ -57,6 +58,10 @@ export const getCommands = async () => {
     })
 
   return plugins.flatMap((plugin) => {
+    if (disabledPlugins.includes(plugin)) {
+      return []
+    }
+
     const manifestPath = path.join(currentPluginsDir, plugin, 'manifest.yml')
     const manifest = yaml.load(fs.readFileSync(manifestPath, 'utf8')) as ManifestT
 
@@ -367,6 +372,33 @@ export const setHotkey = (type: string, hotkey: string): Promise<void> => {
         if (error) reject(error)
         else resolve()
       })
+    })
+  })
+}
+
+export const setDisabledPlugins = (pluginName: string, isDisabled: boolean): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    getDisabledPlugins()
+      .then((disabledPlugins) => {
+        const updatedPlugins = isDisabled
+          ? [...disabledPlugins, pluginName]
+          : disabledPlugins.filter((n) => n !== pluginName)
+        storage.set('disabledPlugins', updatedPlugins, (error) => {
+          if (error) reject(error)
+          else resolve()
+        })
+      })
+      .catch(reject)
+  })
+}
+
+export const getDisabledPlugins = (): Promise<string[]> => {
+  return new Promise((resolve) => {
+    storage.get('disabledPlugins', (error, data) => {
+      if (error) throw error
+      // Ensure we always return an array, even if data is null, undefined, or not an array
+      const disabledPlugins = Array.isArray(data) ? data : []
+      resolve(disabledPlugins)
     })
   })
 }

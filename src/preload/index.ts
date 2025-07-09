@@ -43,6 +43,12 @@ if (process.contextIsolated) {
       setHotkey: (type, hotkey) => {
         return ipcRenderer.invoke('set-hotkey', type, hotkey)
       },
+      setDisabledPlugins: (pluginName, isDisabled) => {
+        return ipcRenderer.invoke('set-disabled-plugins', pluginName, isDisabled)
+      },
+      getDisabledPlugins: () => {
+        return ipcRenderer.invoke('get-disabled-plugins')
+      },
       showMainWindow: () => {
         return ipcRenderer.send('show-main-window')
       },
