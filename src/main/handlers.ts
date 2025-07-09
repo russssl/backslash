@@ -48,7 +48,13 @@ const DEPS = {
  */
 export const getCommands = async () => {
   const currentPluginsDir = await getPluginsDir()
-  const plugins = fs.readdirSync(currentPluginsDir).filter((plugin) => plugin !== '.git')
+  const plugins = fs
+    .readdirSync(currentPluginsDir)
+    .filter((plugin) => plugin !== '.git')
+    .filter((plugin) => {
+      const pluginPath = path.join(currentPluginsDir, plugin)
+      return fs.statSync(pluginPath).isDirectory()
+    })
 
   return plugins.flatMap((plugin) => {
     const manifestPath = path.join(currentPluginsDir, plugin, 'manifest.yml')
